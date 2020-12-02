@@ -1,0 +1,14 @@
+<script>
+let before = performance.now()
+for(var i = 0, len = 5000000000; i < len; i++)
+{
+    let sinPhiRadius = Math.cos(Math.random()) * -Math.random();
+    sinPhiRadius * Math.sin(-Math.random());
+    Math.sin(Math.random()) * Math.random();
+    sinPhiRadius * Math.cos(-Math.random());
+    Math.random() + ((3.074 + 1.337 * Math.sin(Math.random() * Math.PI / 180) * Math.tan(Math.random() * Math.PI / 180)) / 240) * Math.random();
+    Math.random() + ((20.049 * Math.cos(Math.random() * Math.PI / 180)) / 3600) * Math.random();
+}
+after = performance.now();
+console.log('done, took: ' + (after - before) + 'ms');
+</script>
