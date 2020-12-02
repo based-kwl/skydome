@@ -1,29 +1,60 @@
 let starMeshVertexShader = `
-#define PI 3.141592653589793238
-attribute float size;
 uniform float fov;
+
 attribute vec3 customColor;
+attribute float size;
+attribute float vmag;
+attribute float starseed;
+
 varying vec3 vColor;
 varying float trogvmag;
-attribute float vmag;
 varying float trogfov;
+varying float trogseed;
 
 void main() 
 {
+    trogseed = starseed;
     vColor = customColor;
     vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
     gl_PointSize = size;
     gl_Position = projectionMatrix * mvPosition;
     trogvmag = vmag;
     trogfov = fov;
-}`;
+}`
 
 let starMeshFragmentShader = `
+#define octaves 16
 precision mediump float;
+
 varying vec3 vColor;
 varying float trogfov;
 varying float trogvmag;
+varying float trogseed;
+
 uniform sampler2D pointTexture;
+uniform float asynctime;
+
+
+float rand(float n){return fract(sin(n) * 43758.5453123);}
+
+float noise(float p){
+    float fl = floor(p);
+  float fc = fract(p);
+    return mix(rand(fl), rand(fl + 1.0), fc);
+}
+
+float fbm(float x) {
+    float v = 0.0;
+    float a = 0.5;
+    float shift = float(100);
+    for (int i = 0; i < octaves; ++i) {
+        v += a * noise(x);
+        x = x * 2.0 + shift;
+        a *= 0.5;
+    }
+    return v;
+}
+
 
 void main()
 {
@@ -36,7 +67,7 @@ void main()
         float alpha = minmag-trogvmag;
         if (alpha > 1.0)
         {
-            alpha = 1.0;
+            alpha = fbm(((0.25 * trogvmag) + ((0.25 * trogvmag) * asynctime)) + trogseed);
         }
         if (alpha < 0.0)
         {
@@ -46,10 +77,10 @@ void main()
         gl_FragColor = vec4(vColor, alpha);
         gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
     #else
-        gl_FragColor = vec4(vColor, 1);
+        gl_FragColor = vec4(vColor, 1.0);
     #endif
 }
-`;
+`
 
 
 //Helper functions
@@ -384,6 +415,6 @@ skyDomeMesh.rotation.y = rotationoffset - Math.PI / 2;
 function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
-    skyDomeMesh.rotation.y += 0.0001;
+    skyDomeMesh.rotation.y += 0.00005;
 }
 animate();
